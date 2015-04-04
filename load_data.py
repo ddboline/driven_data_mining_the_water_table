@@ -11,9 +11,16 @@ import pandas as pd
 import datetime
 from dateutil.parser import parse
 
-STATUS_GROUP_MAP = {'non functional': 0, 
-                    'functional needs repair': 1, 
-                    'functional': 2}
+STATUS_GROUP = ['non functional', 'functional needs repair', 'functional']
+
+def transform_from_classes(inp):
+    y = np.zeros((inp.shape[0], 3), dtype=np.int64)
+    for index, cidx in enumerate(inp):
+        y[index, cidx] = 1.0
+    return y
+
+def transform_to_class(vec):
+    return np.argmax(vec, axis=1)
 
 def extract_categories(df):
     category_dict = {}
@@ -31,6 +38,9 @@ def extract_categories(df):
     return category_dict
 
 def clean_data(df, cat_dict):
+    if 'status_group' in df.columns:
+        df['status_group'] = df['status_group'].map({c: n for (n, c) in
+                                                     enumerate(STATUS_GROUP)})
     
     df['date_recorded'] = df['date_recorded']\
                           .apply(lambda x: (parse(x).date()
@@ -44,11 +54,17 @@ def clean_data(df, cat_dict):
         df[cat] = df[cat].map({c: n for (n, c) in enumerate(cat_dict[cat])})
     
     for label in 'public_meeting', 'permit':
-        df[label] = df[label].astype(np.float64)
+        df.loc[df[label].isnull(), label] = -1
+        df[label] = df[label].astype(np.int64)
+        
     
     drop_labels = ['funder', 'installer', 'wpt_name', 'subvillage', 'ward', 
                    'recorded_by', 'scheme_name']
     df = df.drop(labels=drop_labels, axis=1)
+    
+    for col in df.columns:
+        if np.any(df[col].isnull()):
+            print col, np.sum(df[col].isnull())
     
     return df
 
@@ -70,13 +86,13 @@ def load_data(do_plots=False):
         plot_data(test_df, prefix='html_test')
 
     xtrain = train_df.drop(labels=['id', 'status_group'], axis=1).values
-    ytrain = train_df['status_group'].map(STATUS_GROUP_MAP).values
+    ytrain = transform_from_classes(train_df['status_group'].values)
     xtest = test_df.drop(labels=['id'], axis=1).values
     ytest = submit_format
 
     return xtrain, ytrain, xtest, ytest
 
 if __name__ == '__main__':
-    xtrain, ytrain, xtest, ytest = load_data(do_plots=False)
+    xtrain, ytrain, xtest, ytest = load_data(do_plots=True)
     
     print [x.shape for x in xtrain, ytrain, xtest, ytest]
