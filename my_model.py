@@ -9,7 +9,7 @@ Created on Sat Apr  4 15:13:43 2015
 import gzip
 import cPickle as pickle
 import numpy as np
-import pandas as pd
+#import pandas as pd
 
 from load_data import load_data, transform_to_class, STATUS_GROUP
 
