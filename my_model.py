@@ -66,9 +66,7 @@ if __name__ == '__main__':
     xtrain, ytrain, xtest, ytest = load_data()
 
     model = RandomForestClassifier(n_estimators=10, n_jobs=-1)
-
 #    for idx in range(3):
 #        train_model_parallel(model, xtrain, ytrain, index=idx, prefix='rf10')
-
 #    test_model_parallel(xtrain, ytrain, prefix='rf10')
     prepare_submission_parallel(xtest, ytest, prefix='rf10')

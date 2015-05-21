@@ -12,8 +12,7 @@ import matplotlib
 matplotlib.use('Agg')
 import pylab as pl
 
-import numpy as np
-#from pandas.tools.plotting import scatter_matrix
+from pandas.tools.plotting import scatter_matrix
 
 def create_html_page_of_plots(list_of_plots, prefix='html'):
     """
@@ -42,18 +41,24 @@ def plot_data(indf, prefix='html'):
     create scatter matrix plot, histograms
     """
     list_of_plots = []
-#    scatter_matrix(indf)
-#    pl.savefig('scatter_matrix.png')
-#    list_of_plots.append('scatter_matrix.png')
+    column_groups = []
+    for idx in range(0, len(indf.columns), 3):
+        print len(indf.columns), idx, (idx+3)
+        column_groups.append(indf.columns[idx:(idx+3)])
+    
+    for idx in range(len(column_groups)):
+        for idy in range(0, idx):
+            if idx == idy:
+                continue
+            print column_groups[idx]+column_groups[idy]
+            pl.clf()
+            scatter_matrix(indf[column_groups[idx]+column_groups[idy]])
+            pl.savefig('scatter_matrix_%d_%d.png' % (idx, idy))
+            list_of_plots.append('scatter_matrix_%d_%d.png' % (idx, idy))
+            pl.close()
 
     for col in indf:
         pl.clf()
-#        v = indf[col]
-#        nent = len(v)
-#        hmin, hmax = v.min(), v.max()
-#        xbins = np.linspace(hmin,hmax,nent)
-#        hmin, hmax, nbin = BOUNDS[col]
-#        xbins = np.linspace(hmin, hmax, nbin)
         print col
         indf[col].hist(histtype='step', normed=True)
         pl.title(col)
